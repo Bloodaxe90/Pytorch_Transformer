@@ -3,4 +3,5 @@
   <component name="Black">
     <option name="sdkName" value="Python 3.10 (Transformer_no_hugging_face)" />
   </component>
+  <component name="ProjectRootManager" version="2" project-jdk-name="Remote Python 3.10.12 (sftp://kkf525@csgpu1.cs.york.ac.uk:22/shared/storage/cs/studentscratch/kkf525/PyCharm_Projects/Transformer_no_hugging_face/.venv/bin/python)" project-jdk-type="Python SDK" />
 </project>

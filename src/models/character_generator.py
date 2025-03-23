@@ -1,44 +1,57 @@
 import torch
 from torch import nn
-
-from src.transformer.layer_norm import LayerNorm
-from src.transformer.multi_head_attention import MultiHeadAttention
-from src.transformer.position_wise_ffnn import PositionWiseFFNN
-from src.transformer.positional_encoding import PositionEncoding
+import torch.nn.functional as F
+from src.transformer.decoder_transformer import DecoderTransformer
+from src.transformer.positional_encoding import DynamicPositionEncoding
 
 
 class CharacterGenerator(nn.Module):
 
-    def __init__(self, vocab_size, embedding_dim):
+    def __init__(
+        self,
+        vocab_size: int,
+        embedding_dim: int,
+        num_transformers: int,
+        num_heads: int = 8,
+        ffnn_hidden_neurons: int = None,
+        dropout_prob: float = 0.2,
+    ):
         super().__init__()
+        assert num_transformers > 0, "Must have at least one Transformer "
         self.embedding = nn.Embedding(vocab_size, embedding_dim)
-        self.position_encoding = PositionEncoding(100, embedding_dim)
+        self.position_encoding = DynamicPositionEncoding()
+        self.dropout = nn.Dropout(dropout_prob)
 
-        self.masked_multi_head_self_attention = MultiHeadAttention(embedding_dim, 8)
-        self.layer_norm1 = LayerNorm(embedding_dim)
+        self.decoder_transformers = nn.ModuleList(
+            [
+                DecoderTransformer(
+                    embedding_dim, num_heads, ffnn_hidden_neurons, dropout_prob
+                )
+                for _ in range(num_transformers)
+            ]
+        )
+        self.post_processing = nn.Linear(embedding_dim, vocab_size)
 
-        self.position_wise_ffnn = PositionWiseFFNN(embedding_dim)
-        self.layer_norm2 = LayerNorm(embedding_dim)
-
-        self.linear1 = nn.Linear(embedding_dim, vocab_size)
+    def generate(self, x: torch.Tensor):
+        self.eval()
+        with torch.inference_mode():
+            logits = self.forward(x.unsqueeze(0))
+        return logits
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         batch_size, seq_length = x.shape[:2]
 
         embedded_x = self.embedding(x)
         position_encoded_x = self.position_encoding(embedded_x)
+        drop_x = self.dropout(position_encoded_x)
 
-        mask = torch.triu(torch.ones(seq_length, seq_length), diagonal=1) * -1e8
-        mask = mask.unsqueeze(0).expand(batch_size, -1, -1)
+        causal_mask = torch.triu(torch.ones(seq_length, seq_length), diagonal=1) * -1e8
+        causal_mask = (
+            causal_mask.unsqueeze(0).expand(batch_size, -1, -1).to(x.device.type)
+        )
 
-        identity1 = position_encoded_x
-        residual_x1 = self.masked_multi_head_self_attention(position_encoded_x, mask= mask) + identity1
-        norm_x1 = self.layer_norm1(residual_x1)
+        context_aware_x = drop_x
+        for decoder_transformer in self.decoder_transformers:
+            context_aware_x = decoder_transformer(context_aware_x, mask=causal_mask)
 
-        identity2 = norm_x1
-        residual_x2 = self.position_wise_ffnn(norm_x1) + identity2
-        norm_x2 = self.layer_norm2(residual_x2)
-
-        return self.linear1(norm_x2)
-
-
+        return self.post_processing(context_aware_x)

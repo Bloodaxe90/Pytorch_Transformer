@@ -11,6 +11,8 @@ class LayerNorm(nn.Module):
         self.beta = nn.Parameter(torch.zeros(embedded_dim))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        mean = torch.mean(x, dim= -1, keepdim=True)
-        sd = torch.sqrt(torch.var(x, dim= -1, keepdim=True, unbiased=False) + self.epsilon)
+        mean = torch.mean(x, dim=-1, keepdim=True)
+        sd = torch.sqrt(
+            torch.var(x, dim=-1, keepdim=True, unbiased=False) + self.epsilon
+        )
         return (self.gamma * ((x - mean) / sd)) + self.beta
