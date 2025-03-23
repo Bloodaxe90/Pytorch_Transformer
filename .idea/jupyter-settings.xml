@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="JupyterPersistentConnectionParameters">
+    <option name="moduleParameters">
+      <map>
+        <entry key="$PROJECT_DIR$/.idea/Transformer_no_hugging_face.iml">
+          <value>
+            <JupyterConnectionParameters>
+              <option name="managed" value="true" />
+              <option name="sdkName" value="Remote Python 3.10.12 (sftp://kkf525@csgpu1.cs.york.ac.uk:22/shared/storage/cs/studentscratch/kkf525/PyCharm_Projects/Transformer_no_hugging_face/.venv/bin/python)" />
+            </JupyterConnectionParameters>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>

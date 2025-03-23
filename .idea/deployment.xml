@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData" autoUpload="Always" serverName="kkf525@csgpu1.cs.york.ac.uk:22 password" remoteFilesAllowedToDisappearOnAutoupload="false">
+    <serverData>
+      <paths name="kkf525@csgpu1.cs.york.ac.uk:22 password">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/shared/storage/cs/studentscratch/kkf525/PyCharm_Projects/Transformer_no_hugging_face" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="kkf525@csgpu1.cs.york.ac.uk:22 password (3)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/shared/storage/cs/studentscratch/kkf525/PyCharm_Projects/Transformer_no_hugging_face" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="kkf525@csgpu1.cs.york.ac.uk:22 password (4)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/shared/storage/cs/studentscratch/kkf525/PyCharm_Projects/Transformer_no_hugging_face" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+    </serverData>
+    <option name="myAutoUpload" value="ALWAYS" />
+  </component>
+</project>
