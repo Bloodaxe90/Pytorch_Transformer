@@ -1,28 +1,28 @@
+import os
+
 import torch.optim
 from torch import nn
 
 from src.engine.train import train
 from src.models.character_generator import CharacterGenerator
 from src.utils.character_dataset import CharacterDataset
-from src.utils.create_dataloaders import create_dataloaders
-from src.utils.io import get_text
+from src.utils.create_character_dataloaders import create_character_dataloaders
+from src.utils.io import get_text, load_model
 
 
 def main():
-    TXT_FILE_NAME = "bee_movie"
+    TXT_FILE_NAME = "macbeth"
     text = get_text(TXT_FILE_NAME)
 
     BATCH_SIZE = 64
+    EPOCHS = 5
     BLOCK_SIZE = 256
     SHUFFLE = True
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-    WORKERS = (
-        min(max(1, BATCH_SIZE // 16), torch.cuda.device_count())
-        if DEVICE == "cuda"
-        else torch.cpu.device_count()
-    )
+    WORKERS = os.cpu_count()
 
-    train_dataloader, test_dataloader = create_dataloaders(
+
+    train_dataloader, test_dataloader = create_character_dataloaders(
         text=text,
         train_percent=0.9,
         block_size=BLOCK_SIZE,
@@ -50,14 +50,17 @@ def main():
     )
 
     if DEVICE == "cuda":
-        model = nn.DataParallel(model, device_ids=list(range(WORKERS)))
+        WORLD_SIZE = min(max(1, BATCH_SIZE // 16), torch.cuda.device_count())
+        model = nn.DataParallel(model, device_ids=list(range(WORLD_SIZE)))
+        print(f"World Size: {WORLD_SIZE}")
     model.to(DEVICE)
 
     print(f"Device: {DEVICE}")
     print(f"Workers: {WORKERS}")
 
     ALPHA = 3e-4
-    EPOCHS = 4
+    LOSS_FN = nn.CrossEntropyLoss()
+    OPTIMIZER = torch.optim.Adam(params=model.parameters(), lr=ALPHA)
     EXP_NAME = (
         f"{TXT_FILE_NAME}_"
         f"LR{ALPHA}_"
@@ -71,15 +74,15 @@ def main():
         f"PN{POSITIONAL_FFNN_HIDDEN_NEURONS}_"
         f"DP{DROPOUT_PROB}"
     )
-    MODEL_NAME = f"" f"{EXP_NAME}"
-    EVAL_INTERVAL = 100  # Every x batches
-    SAVE_INTERVAL = 1000  # Every x batches
+    MODEL_NAME = f"Placeholder_" f"{EXP_NAME}"
+    EVAL_INTERVAL = 10  # Every x batches
+    SAVE_INTERVAL = 100  # Every x batches
 
-    results = train(
+    train_results = train(
         model=model,
         train_dataloader=train_dataloader,
-        loss_fn=nn.CrossEntropyLoss(),
-        optimizer=torch.optim.Adam(params=model.parameters(), lr=ALPHA),
+        loss_fn=LOSS_FN,
+        optimizer=OPTIMIZER,
         epochs=EPOCHS,
         eval_interval=EVAL_INTERVAL,
         save_interval=SAVE_INTERVAL,
@@ -87,9 +90,9 @@ def main():
         exp_name=EXP_NAME,
         model_name=MODEL_NAME,
     )
-
-    print(results)
+    print(train_results)
 
 
 if __name__ == "__main__":
     main()
+

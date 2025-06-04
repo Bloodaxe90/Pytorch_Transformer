@@ -2,7 +2,7 @@ from torch.utils.data import DataLoader
 from src.utils.character_dataset import CharacterDataset
 
 
-def create_dataloaders(
+def create_character_dataloaders(
     text: str,
     workers: int,
     train_percent: float = 0.9,
